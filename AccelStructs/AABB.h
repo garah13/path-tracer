@@ -18,14 +18,20 @@ public:
     int getMaxDimension();
     bool intersect(const Ray &r);
 
+    bool intersect2(const Ray &r, float &tNear, float &tFar);
+
+    Eigen::Vector3f _bottomLeftCorner;
+    Eigen::Vector3f _topRightCorner;
+    Eigen::Vector3f _extent;
+
 private:
 
     void computeTMinMax(const Ray &r, int dimension, float &min, float &max);
 
 
-    Eigen::Vector3f _bottomLeftCorner;
-    Eigen::Vector3f _topRightCorner;
-    Eigen::Vector3f _extent;
+//    Eigen::Vector3f _bottomLeftCorner;
+//    Eigen::Vector3f _topRightCorner;
+//    Eigen::Vector3f _extent;
 };
 
 #endif // AABB_H

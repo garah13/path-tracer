@@ -87,6 +87,34 @@ bool AABB::intersect(const Ray &r) {
     return true;
 }
 
+
+bool AABB::intersect2(const Ray &r, float &tNear, float &tFar) {
+    float t0x, t1x, t0y, t1y, t0z, t1z;
+    computeTMinMax(r, 0, t0x, t1x);
+    computeTMinMax(r, 1, t0y, t1y);
+    computeTMinMax(r, 2, t0z, t1z);
+
+    tNear = t0x;
+    tFar = t1x;
+
+    //todo -> make sure comparisons don't have floating point errors
+    if (t0y > tFar || t1y < tNear) {
+        return false;
+    }
+
+    tNear = std::fmin(t0y, tNear);
+    tFar = std::fmax(t1y, tFar);
+
+    //todo -> make sure comparisons don't have floating point errors
+    if (t0z > tFar || t1z < tFar) {
+        return false;
+    }
+
+    tNear = std::fmin(t0z, tNear);
+    tFar = std::fmax(t1z, tFar);
+    return true;
+}
+
 //computes the min and max values
 void AABB::computeTMinMax(const Ray &r, int dimension, float &min, float &max) {
     if (dimension < 0 || dimension > 2) {

@@ -4,6 +4,7 @@
 #include "Eigen/Dense"
 #include "AABB.h"
 #include "ray.h"
+#include "intersectioninfo.h"
 
 class IntersectableObj
 {
@@ -14,6 +15,7 @@ public:
     virtual AABB getAABB() const = 0;
     virtual Eigen::Vector3f getCentroid() const = 0;
     virtual bool intersect(const Ray &r) const = 0;
+    virtual void intersect(const Ray &r, IntersectionInfo *info) const = 0;
 };
 
 #endif // INTERSECTABLEOBJECT_H
