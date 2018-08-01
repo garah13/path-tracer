@@ -1,18 +1,104 @@
 #include "mesh.h"
 
+using namespace Eigen;
+
+//TODO:: go through comments and fix transformations
+//TODO:: once rendering by looping through triangles, make an internal BVH of
+// all the triangles and use that BVH when checking for triangle intersections
+
 Mesh::Mesh(std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
            std::vector<Eigen::Vector3i> &faces) {
 
     _vertices = vertices;
     _normals = normals;
     _faces = faces;
+    initiateBBox();
+    initiateTriangles();
+    setTransform(Affine3f::Identity());
+    //create aabb
+}
+
+void Mesh::initiateTriangles() {
+    int size = _faces.size();
+    _triangles = new Triangle[size];
+    for (int i = 0; i < size; i++) {
+        Vector3i face = _faces[i];
+        Vector3f v0 = _vertices[face(0)];
+        Vector3f v1 = _vertices[face(1)];
+        Vector3f v2 = _vertices[face(2)];
+        Vector3f n0 = _normals[face(0)];
+        Vector3f n1 = _normals[face(1)];
+        Vector3f n2 = _normals[face(2)];
+
+        _triangles[i] = Triangle(v0, v1, v2, n0, n1, n2);
+        _bbox.expandToInclude(_triangles[i].getAABB());
+    }
+}
+
+void Mesh::initiateBBox() {
+    int size = _vertices.size();
+    if (size == 0) { return; }
+    _bbox.setVertex(_vertices[0]);
+    _centroid = Vector3f(0, 0, 0);
+    _bbox.setVertex(_vertices[0]);
+    for (int i = 1; i < size; i++) {
+        _centroid += _vertices[i];
+        _bbox.expandToInclude(_vertices[i]);
+    }
+    _centroid /= size;
 }
 
 
-void Mesh::setTransform(const Eigen::Matrix4Xf &transform) {
+void Mesh::setTransform(const Affine3f &transform) {
     _transform = transform;
-    _normalTransform = transform.topLeftCorner(3, 3).inverse().transpose();
+    _inverseTransform = transform.inverse();
+    _normalTransform = transform.linear();
+    _inverseNormalTransform = transform.linear().inverse().transpose();
 
-    //TODO::deal with bounding box
+    //reset bounding box, right and recreate bounding volume heiarchy
 }
 
+
+//check what happens when it rotates??
+//because the top right might become bottom, etc.
+//no it will
+
+//or find what the new box is, get max, min dimensions, and set it
+AABB Mesh::getAABB() const {
+    AABB transformedBox = AABB();
+    transformedBox.setVertex(_transform * _bbox._bottomLeftCorner);
+    transformedBox.expandToInclude(_transform * _bbox._topRightCorner);
+    return _bbox;
+}
+
+//transform it?
+Vector3f Mesh::getCentroid() const {
+    return _transform * ((_bbox._bottomLeftCorner + _bbox._topRightCorner) / 2.f);
+}
+
+
+//must transform the normal to world from object
+Vector3f Mesh::getNormal(const IntersectionInfo &info) const {
+    return static_cast<IntersectableObj *>(info.data)->getNormal(info);
+}
+
+//for now just loop through all of the triangles
+//later on create a bvh out of all the triangles
+//and use it for intersections
+
+//incoming ray will be in world, transform it to object
+bool Mesh::intersect(const Ray &r, IntersectionInfo *info) const {
+    int size = _faces.size();
+    for (int i = 0; i < size; i++) {
+        IntersectionInfo local = IntersectionInfo();
+        if (_triangles[i].intersect(r, &local)) {
+            if (local.t < info->t) {
+                info->t = local.t;
+                info->data = (void *) (local.obj);
+                info->obj = this;
+                info->hit = local.hit;
+            }
+        }
+    }
+    return info->t != INFINITY;
+}

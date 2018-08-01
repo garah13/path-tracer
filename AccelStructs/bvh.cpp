@@ -98,7 +98,6 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
      } else { //hit a leaf node
          for (int i = currNode->index; i < currNode->index + currNode->n_objects; i++) {
             IntersectionInfo local;
-            _objs[i]->intersect(r);
             _objs[i]->intersect(r, &local);
             if (info->t != INFINITY) {
                 if (local.t < closestHit) {

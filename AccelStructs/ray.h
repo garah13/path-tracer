@@ -16,6 +16,12 @@ struct Ray {
         return Ray(o.head<3>(), d.head<3>());
     }
 
+    Ray transform(Eigen::Affine3f transform) {
+        Eigen::Vector3f oo = transform * origin;
+        Eigen::Vector3f od = transform.linear().inverse().transpose() * direction;
+        return Ray(oo, od);
+    }
+
     Eigen::Vector3f origin;
     Eigen::Vector3f direction;
     Eigen::Vector3f invDir;

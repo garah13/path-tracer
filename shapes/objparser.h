@@ -3,6 +3,11 @@
 
 
 #include <istream>
+#include <vector>
+#include "Eigen/Dense"
+
+#include <regex>
+
 
 class ObjParser
 {
@@ -10,25 +15,35 @@ class ObjParser
 public:
     ObjParser();
 
-    static void LoadObj(const char* filename);
+    static void LoadObj(const char* filename, std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
+                        std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals);
 
     static void getLine(std::istream& is, std::string& res);
 
     //functions to parse vertices, normals and faces
     static void parseVertex(const char *token, float &x, float &y, float &z);
     static void parseNormal(const char *token, float &x, float &y, float &z);
-    static void parseFace(const char *token, int &v1, int &v2, int &v3);
+    static void parseFace(const char *token, int &v1, int &v2, int &v3, int &vn1, int &vn2, int &vn3);
 
 
     //functions to parse strings, ints, and floats
-    static int parseInt(const char **token);
-    static float parseFloat(const char **token);
-    static double parseDouble(const char **token);
+
+
+
+    static bool parseInt(const char **token, int &value);
+    static bool parseFloat(const char **token, float &value);
+    static bool parseDouble(const char **token, double &value);
+
     static std::string parseString(const char **token);
 
-    //checks if the the characters up to index = length - 1
-    //are digits
-    static bool isDigit(const char *token, int length);
+
+private:
+
+    static const std::regex intRegex;
+    static const std::regex floatRegex;
+    static const std::regex verts;
+    static const std::regex faceVIndices;
+    static const std::regex faceVNIndices;
 
 };
 

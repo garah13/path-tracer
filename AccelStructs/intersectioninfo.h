@@ -8,9 +8,13 @@
 class IntersectableObj;
 
 struct IntersectionInfo {
+    IntersectionInfo() : t(INFINITY), hit(Eigen::Vector3f(0, 0, 0)), obj(nullptr), data(nullptr) {}
+
+
     float t;
     Eigen::Vector3f hit;
-    IntersectableObj *obj;
+    const IntersectableObj *obj;
+    void* data;
 
 };
 

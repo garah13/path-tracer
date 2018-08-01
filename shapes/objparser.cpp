@@ -3,16 +3,26 @@
 #include <fstream>
 #include <iostream>
 
-ObjParser::ObjParser()
-{
 
+using namespace Eigen;
+
+//const static member variables
+const std::regex ObjParser::intRegex("[0-9]+");
+
+const std::regex ObjParser::floatRegex("(?:-)?[0-9]+(?:\\.[0-9]+)?");
+const std::regex ObjParser::verts("[[:space:]]*(?:(?:-)?[0-9]+(?:\\.[0-9]+)?[[:space:]]+){2}(?:-)?[0-9]+(?:\\.[0-9]+)?[[:space:]]*");
+const std::regex ObjParser::faceVIndices("[[:space:]]*(?:[0-9]+[[:space:]]+){2}[0-9]+[[:space:]]*");
+const std::regex ObjParser::faceVNIndices("[[:space:]]*(?:[0-9]+\/\/[0-9]+[[:space:]]+){2}[0-9]+\/\/[0-9]+[[:space:]]*");
+
+
+ObjParser::ObjParser() {
 }
 
 
 //first thing is to only parse out vertex coordinates
 //then normals
 //etc.
-void ObjParser::LoadObj(const char *filename) {
+void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, std::vector<Vector3f> &normals, std::vector<Vector3i> &faces, std::vector<Vector3i> &faceNormals) {
 
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs) {
@@ -51,25 +61,32 @@ void ObjParser::LoadObj(const char *filename) {
         }
 
         //case for VERTEX
-        if (token[0] == 'v' && token[0] == ' ') {
+        if (token[0] == 'v' && token[1] == ' ') {
             token += 2; //pointer arithmetic move 2 forward
-            float x, y, z;
-            parseVertex(token, x, y, z);
+            Vector3f v;
+            parseVertex(token, v(0), v(1), v(2));
+            vertices.push_back(v);
             continue;
         }
 
         //case for NORMAL
         if (token[0] == 'v' && token[1] == 'n') {
             token += 2;
-            float x, y, z;
-            parseNormal(token, x, y, z);
+            Vector3f n;
+            parseNormal(token, n(0), n(1), n(2));
+            normals.push_back(n );
             continue;
         }
 
+        //cases for faces
         if (token[0] == 'f' && token[1] == ' ') {
             token += 2;
-            int v1, v2, v3;
-            parseFace(token, v1, v2, v3);
+            Vector3i f;
+            Vector3i fn;
+
+            parseFace(token, f(0), f(1), f(2), fn(0), fn(1), fn(2));
+            faces.push_back(f);
+            faceNormals.push_back(fn);
             continue;
         }
     }
@@ -112,29 +129,6 @@ void ObjParser::getLine(std::istream &is, std::string &res) {
     }
 }
 
-//parse integer
-int ObjParser::parseInt(const char **token) {
-    *token += strspn(*token, " \t");
-    int value = atoi(*token);
-    *token += strcspn(*token, " \t\r");
-    return value;
-}
-
-//parse float
-float ObjParser::parseFloat(const char **token) {
-    *token += strspn(*token, " \t");
-    float value = strtof(*token, NULL);
-    *token += strcspn(*token, " \t\r");
-    return value;
-}
-
-//parse a double
-double ObjParser::parseDouble(const char **token) {
-    *token += strspn(*token, " \t");
-    double value = strtod(*token, NULL);
-    *token += strcspn(*token, " \t\r");
-    return value;
-}
 
 //parse a string
 std::string ObjParser::parseString(const char **token) {
@@ -145,61 +139,85 @@ std::string ObjParser::parseString(const char **token) {
     return value;
 }
 
-//checks if every character up to length minus 1 is
-//a digit. If so, returns true. Otherwise returns false.
-//if length is 0, returns true
-bool ObjParser::isDigit(const char *token, int length) {
-    for (int i = 0; i < length; i++) {
-        if (!isdigit(token[i])) {
-            return false;
-        }
+//parse int
+bool ObjParser::parseInt(const char **token, int &value) {
+    *token += strspn(*token, " \t");
+    std::cmatch cm;
+    if (std::regex_search(*token, cm, intRegex)) {
+        value = atoi(*token);
+        *token += cm.length(0);
+        return true;
     }
-    return true;
+    return false;
+}
+
+//parse float
+bool ObjParser::parseFloat(const char **token, float &value) {
+    *token += strspn(*token, " \t");
+    std::cmatch cm;
+    if (std::regex_search(*token, cm, floatRegex)) {
+        value = strtof(*token, NULL);
+        *token += cm.length(0);
+        return true;
+    }
+    return false;
 }
 
 //parse Vertex information
 void ObjParser::parseVertex(const char *token, float &x, float &y, float &z) {
-    x = parseFloat(&token);
-    if (token[0] == '\0') {
-        std::cout << "requires three numbers per vertex" << std::endl;
-        exit(1);
+    std::cmatch cm;
+    if (std::regex_match(token, cm, verts)) {
+        parseFloat(&token, x);
+        parseFloat(&token, y);
+        parseFloat(&token, z);
     }
-    y = parseFloat(&token);
-    if (token[0] == '\0') {
-        std::cout << "requires three numbers per vertex" << std::endl;
-        exit(1);
-    }
-    z = parseFloat(&token);
 }
+
 
 //parse vertex normal information
 void ObjParser::parseNormal(const char *token, float &x, float &y, float &z) {
-    x = parseFloat(&token);
-    if (token[0] == '\0') {
-        std::cout << "requires three numbers per normal" << std::endl;
-        exit(1);
+    std::cmatch cm;
+    if (std::regex_match(token, cm, verts)) {
+        parseFloat(&token, x);
+        parseFloat(&token, y);
+        parseFloat(&token, z);
     }
-    y = parseFloat(&token);
-    if (token[0] == '\0') {
-        std::cout << "requires three numbers per normal" << std::endl;
-        exit(1);
-    }
-    z = parseFloat(&token);
 }
 
+
 //parse face information
-void ObjParser::parseFace(const char *token, int &v1, int &v2, int &v3) {
-    v1 = parseInt(&token) - 1;
-    if (token[0] == '\0') {
-        std::cout << "requires three vertices per face" << std::endl;
-        exit(1);
+//i understand the index offset, tells you what to add
+//like the buffers
+void ObjParser::parseFace(const char *token, int &v1, int &v2, int &v3, int &vn1, int &vn2, int &vn3) {
+    std::cmatch cm;
+    if (std::regex_match(token, cm, faceVIndices)) {
+        parseInt(&token, v1);
+        parseInt(&token, v2);
+        parseInt(&token, v3);
+        vn1 = vn2 = vn3 = -1;
+        v1 -= 1;
+        v2 -= 1;
+        v3 -= 1;
     }
-    v2 = parseInt(&token) - 1;
-    if (token[0] == '\0') {
-        std::cout << "requires three vertices per face" << std::endl;
-        exit(1);
+
+    if (std::regex_match(token, cm, faceVNIndices)) {
+        parseInt(&token, v1);
+        token += 2;
+        parseInt(&token, vn1);
+        parseInt(&token, v2);
+        token += 2;
+        parseInt(&token, vn2);
+        parseInt(&token, v3);
+        token += 2;
+        parseInt(&token, vn3);
+        v1 -= 1;
+        v2 -= 1;
+        v3 -= 1;
+        vn1 -= 1;
+        vn2 -= 1;
+        vn3 -= 1;
+
     }
-    v3 = parseInt(&token) - 1;
 }
 
 

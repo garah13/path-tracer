@@ -9,12 +9,12 @@ public:
     CamtransCamera();
 
     virtual void setAspectRatio(float ratio) = 0;
-    virtual Eigen::Matrix4Xf getProjectionMatrix() const = 0;
-    virtual Eigen::Matrix4Xf getViewMatrix() const = 0;
-    virtual Eigen::Matrix4Xf getScaleMatrix() const = 0;
-    virtual Eigen::Matrix4Xf getPersectiveMatrix() const = 0;
+    virtual Eigen::Matrix4Xf getProjectionMatrix() const override;
+    virtual Eigen::Matrix4Xf getViewMatrix() const override;
+    virtual Eigen::Matrix4Xf getScaleMatrix() const override;
+    virtual Eigen::Matrix4Xf getPersectiveMatrix() const override;
 
-    Eigen::Vector3f getEye() const;
+    virtual Eigen::Vector3f getEye() const override;
     Eigen::Vector3f getLook() const;
     Eigen::Vector3f getUp() const;
 

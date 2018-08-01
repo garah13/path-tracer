@@ -15,6 +15,8 @@ public:
 
     virtual Eigen::Matrix4Xf getPersectiveMatrix() const = 0;
 
+    virtual Eigen::Vector3f getEye() const = 0;
+
     // Called when the mouse button is pressed down.
     virtual void mouseDown(int x, int y)    {}
 
