@@ -9,36 +9,36 @@ AABB::AABB(const Vector3f &min, const Vector3f &max) {
         std::cout << "fatal error : bad inputs to AABB" << std::endl;
         std::exit(1);
     }
-    _bottomLeftCorner = min;
-    _topRightCorner = max;
+    _min = min;
+    _max = max;
     _extent = max - min;
 }
 
 AABB::AABB() {
-    _bottomLeftCorner = Vector3f(0, 0, 0);
-    _topRightCorner = Vector3f(0, 0, 0);
+    _min = Vector3f(0, 0, 0);
+    _max = Vector3f(0, 0, 0);
     _extent = Vector3f(0, 0, 0);
 }
 
 //sets initial vertex
 void AABB::setVertex(const Vector3f &vertex) {
-    _bottomLeftCorner = vertex;
-    _topRightCorner = vertex;
-    _extent = _topRightCorner - _bottomLeftCorner;
+    _min = vertex;
+    _max = vertex;
+    _extent = _max - _min;
 }
 
 //expands to include point
 void AABB::expandToInclude(const Vector3f &vertex) {
-    _bottomLeftCorner = _bottomLeftCorner.cwiseMin(vertex);
-    _topRightCorner = _topRightCorner.cwiseMax(vertex);
-    _extent = _topRightCorner - _bottomLeftCorner;
+    _min = _min.cwiseMin(vertex);
+    _max = _max.cwiseMax(vertex);
+    _extent = _max - _min;
 }
 
 //expand to include box
 void AABB::expandToInclude(const AABB &box) {
-    _bottomLeftCorner = _bottomLeftCorner.cwiseMin(box._bottomLeftCorner);
-    _topRightCorner = _topRightCorner.cwiseMax(box._topRightCorner);
-    _extent = _topRightCorner - _bottomLeftCorner;
+    _min = _min.cwiseMin(box._min);
+    _max = _max.cwiseMax(box._max);
+    _extent = _max - _min;
 }
 
 //returns dimension with the maximum extent
@@ -122,11 +122,11 @@ void AABB::computeTMinMax(const Ray &r, int dimension, float &min, float &max) {
         std::exit(1);
     }
     if (r.invDir[dimension] >= 0) {
-        min = (_bottomLeftCorner[dimension] - r.origin[dimension]) / r.direction[dimension];
-        max = (_topRightCorner[dimension] - r.origin[dimension]) / r.direction[dimension];
+        min = (_min[dimension] - r.origin[dimension]) / r.direction[dimension];
+        max = (_max[dimension] - r.origin[dimension]) / r.direction[dimension];
     } else {
-        min = (_topRightCorner[dimension] - r.origin[dimension]) / r.direction[dimension];
-        max = (_bottomLeftCorner[dimension] - r.origin[dimension]) / r.direction[dimension];
+        min = (_max[dimension] - r.origin[dimension]) / r.direction[dimension];
+        max = (_min[dimension] - r.origin[dimension]) / r.direction[dimension];
     }
 }
 

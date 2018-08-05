@@ -5,19 +5,34 @@ BVH::BVH() : n_nodes(0) {
 
 }
 
+
+BVH::~BVH() {
+    for (int i = 0; i < n_nodes; i++) {
+        delete _nodes[i];
+    }
+}
+
+
+//make all of these pointers
 void BVH::build(std::vector<IntersectableObj *> objs) {
     _objs = objs;
     int size = _objs.size();
-    AABB worldBox;
-    if (size > 0) {
-        worldBox = _objs[0]->getAABB();
+    _nodes = std::vector<BVHNode *>(2 * size + 1);
+    if (size == 0) {
+        return;
     }
+    AABB worldBox;
+    worldBox = _objs[0]->getAABB();
+
 
     //make sure world bounding box includes everything
     for (int i = 1; i < size; i++) {
         worldBox.expandToInclude(_objs[i]->getAABB());
     }
+    BVHNode *node = new BVHNode(worldBox, false, size, n_nodes);
+    _nodes[n_nodes] = node;
     n_nodes = 1;
+    buildRecursive(_nodes[0], 0, size);
 }
 
 void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
@@ -30,9 +45,7 @@ void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
     CompareObjs cmp;
     cmp.compareDimension = maxDimension;
     std::sort(_objs.begin() + leftIndex, _objs.end() + rightIndex, cmp);
-    float midpoint = (node->box._topRightCorner[maxDimension]
-            + node->box._bottomLeftCorner[maxDimension]) / 2.f;
-
+    float midpoint = (node->box._max[maxDimension] + node->box._min[maxDimension]) / 2.f;
     int splitIndex = 0;
     for (splitIndex = leftIndex; splitIndex < rightIndex; splitIndex++) {
         if (_objs[splitIndex]->getCentroid()[maxDimension] >= midpoint) {
@@ -44,6 +57,7 @@ void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
         node->makeLeaf(leftIndex, rightIndex - splitIndex);
         return;
     }
+
     AABB leftBox = _objs[leftIndex]->getAABB();
     AABB rightBox = _objs[splitIndex]->getAABB();
     for (int i = leftIndex + 1; i < splitIndex; i++) {
@@ -53,18 +67,17 @@ void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
         rightBox.expandToInclude(_objs[i]->getAABB());
     }
 
-    //check this for the number of objects
-    BVHNode leftNode = BVHNode(leftBox, false, (splitIndex - leftIndex), n_nodes);
-    BVHNode rightNode = BVHNode(rightBox, false, (rightIndex - splitIndex), n_nodes + 1);
+    BVHNode *leftNode = new BVHNode(leftBox, false, (splitIndex - leftIndex), n_nodes);
+    BVHNode *rightNode = new BVHNode(rightBox, false, (rightIndex - splitIndex), n_nodes + 1);
     _nodes[n_nodes] = leftNode;
     _nodes[n_nodes + 1] = rightNode;
     n_nodes += 2;
-    buildRecursive(&leftNode, leftIndex, splitIndex);
-    buildRecursive(&rightNode, splitIndex, rightIndex);
+    buildRecursive(leftNode, leftIndex, splitIndex);
+    buildRecursive(rightNode, splitIndex, rightIndex);
 }
 
 bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
-    BVHNode *currNode = &_nodes[0];
+    BVHNode *currNode = _nodes[0];
     float closestHit = INFINITY;
     BVHNode *leftChild;
     BVHNode *rightChild;
@@ -72,8 +85,8 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
     while(true) {
     loop:
         if (!currNode->isLeaf) {
-            leftChild = &_nodes[currNode->index];
-            rightChild = &_nodes[currNode->index + 1];
+            leftChild = _nodes[currNode->index];
+            rightChild = _nodes[currNode->index + 1];
             float tLeftNear, tLeftFar, tRightNear, tRightFar;
             bool leftIntersect = leftChild->box.intersect2(r, tLeftNear, tLeftFar);
             bool rightIntersect = rightChild->box.intersect2(r, tRightNear, tRightFar);
@@ -98,14 +111,23 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
      } else { //hit a leaf node
          for (int i = currNode->index; i < currNode->index + currNode->n_objects; i++) {
             IntersectionInfo local;
-            _objs[i]->intersect(r, &local);
-            if (info->t != INFINITY) {
-                if (local.t < closestHit) {
+
+            //if there was an intersection
+            if (_objs[i]->intersect(r, &local)) {
+
+                //if this is not the first hit check that it is the closest
+                //and update if so
+                if (info->t != INFINITY) {
+                    if (local.t < closestHit) {
+                        *info = local;
+                        closestHit = local.t;
+                    }
+
+                //first hit, set this to the closest
+                } else {
                     *info = local;
                     closestHit = local.t;
                 }
-            } else if (local.t != INFINITY) {
-                *info = local;
             }
          }
      }

@@ -250,7 +250,8 @@ DIST          = ../../../Qt5.7.1/5.7/clang_64/mkspecs/features/spec_pre.prf \
 		scene/scenedata.h \
 		scene/sceneparser.h \
 		scene/xmlsceneparser.h \
-		pathtracer.h main.cpp \
+		pathtracer.h \
+		scene/material.h main.cpp \
 		cameras/camera.cpp \
 		cameras/camtranscamera.cpp \
 		shapes/objparser.cpp \
@@ -619,7 +620,7 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents cameras/camera.h cameras/camtranscamera.h shapes/objparser.h shapes/mesh.h AccelStructs/bvh.h AccelStructs/ray.h AccelStructs/AABB.h utils/eigenutil.h AccelStructs/intersectableobj.h shapes/triangle.h utils/binarysearchutil.h utils/comparable.h AccelStructs/intersectioninfo.h scene/scene.h scene/scenedata.h scene/sceneparser.h scene/xmlsceneparser.h pathtracer.h $(DISTDIR)/
+	$(COPY_FILE) --parents cameras/camera.h cameras/camtranscamera.h shapes/objparser.h shapes/mesh.h AccelStructs/bvh.h AccelStructs/ray.h AccelStructs/AABB.h utils/eigenutil.h AccelStructs/intersectableobj.h shapes/triangle.h utils/binarysearchutil.h utils/comparable.h AccelStructs/intersectioninfo.h scene/scene.h scene/scenedata.h scene/sceneparser.h scene/xmlsceneparser.h pathtracer.h scene/material.h $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp cameras/camera.cpp cameras/camtranscamera.cpp shapes/objparser.cpp shapes/mesh.cpp AccelStructs/bvh.cpp AccelStructs/AABB.cpp AccelStructs/intersectableobj.cpp shapes/triangle.cpp utils/comparable.cpp scene/scene.cpp scene/xmlsceneparser.cpp pathtracer.cpp $(DISTDIR)/
 
 
@@ -875,6 +876,7 @@ main.o: main.cpp ../../../Qt5.7.1/5.7/clang_64/lib/QtCore.framework/Headers/QCor
 		Eigen/src/Eigenvalues/RealSchur_LAPACKE.h \
 		Eigen/src/Eigenvalues/ComplexSchur_LAPACKE.h \
 		Eigen/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h \
+		scene/material.h \
 		scene/xmlsceneparser.h \
 		scene/sceneparser.h \
 		scene/scenedata.h \
@@ -892,7 +894,10 @@ main.o: main.cpp ../../../Qt5.7.1/5.7/clang_64/lib/QtCore.framework/Headers/QCor
 		AccelStructs/bvh.h \
 		cameras/camera.h \
 		shapes/mesh.h \
-		shapes/triangle.h
+		shapes/triangle.h \
+		pathtracer.h \
+		../../../Qt5.7.1/5.7/clang_64/lib/QtGui.framework/Headers/QRgb \
+		../../../Qt5.7.1/5.7/clang_64/lib/QtGui.framework/Headers/qrgb.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 camera.o: cameras/camera.cpp cameras/camera.h \
@@ -1520,7 +1525,8 @@ objparser.o: shapes/objparser.cpp shapes/objparser.h \
 		Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
 		Eigen/src/Eigenvalues/RealSchur_LAPACKE.h \
 		Eigen/src/Eigenvalues/ComplexSchur_LAPACKE.h \
-		Eigen/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h
+		Eigen/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h \
+		scene/material.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o objparser.o shapes/objparser.cpp
 
 mesh.o: shapes/mesh.cpp shapes/mesh.h \
@@ -2817,7 +2823,9 @@ scene.o: scene/scene.cpp scene/scene.h \
 		../../../Qt5.7.1/5.7/clang_64/lib/QtXml.framework/Headers/qdom.h \
 		../../../Qt5.7.1/5.7/clang_64/lib/QtXml.framework/Headers/qxml.h \
 		../../../Qt5.7.1/5.7/clang_64/lib/QtXml.framework/Headers/qtxmlversion.h \
-		shapes/objparser.h
+		shapes/objparser.h \
+		scene/material.h \
+		cameras/camtranscamera.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o scene.o scene/scene.cpp
 
 xmlsceneparser.o: scene/xmlsceneparser.cpp scene/xmlsceneparser.h \

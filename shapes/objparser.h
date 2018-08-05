@@ -5,7 +5,8 @@
 #include <istream>
 #include <vector>
 #include "Eigen/Dense"
-
+#include "scene/material.h"
+#include "map"
 #include <regex>
 
 
@@ -16,7 +17,12 @@ public:
     ObjParser();
 
     static void LoadObj(const char* filename, std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
-                        std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals);
+                        std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals,
+                        std::map<std::string, int> &materialIds, std::vector<Material> &materials, std::vector<int> &faceMaterialId);
+
+
+    //need to have a map of material to file name
+    static void loadMtl(const char* filename, std::map<std::string, int> &materialIds, std::vector<Material> &materials);
 
     static void getLine(std::istream& is, std::string& res);
 

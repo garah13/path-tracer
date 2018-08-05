@@ -4,6 +4,7 @@
 #include "Eigen/Dense"
 #include "vector"
 
+//used for the parser
 enum TransformationType {
     TRANSLATE,
     SCALE,
@@ -36,7 +37,7 @@ struct SceneTransformation {
     Eigen::Vector3f rotate;
     float angle;
 
-    Eigen::MatrixX4f matrix;
+    Eigen::Matrix4f matrix;
 };
 
 
@@ -51,6 +52,8 @@ struct SceneNode {
     std::vector<ScenePrimitive *> primitives;
     std::vector<SceneNode *> children;
 };
+
+//this will change
 
 
 #endif // SCENEDATA_H

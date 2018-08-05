@@ -12,6 +12,9 @@ struct BVHNode {
     int n_objects; //
     int index; //index to left node or index to first child in list
 
+    BVHNode() {}
+
+
     BVHNode(const AABB &box, bool isLeaf, int n_objects, int index) :
         box(box), isLeaf(isLeaf), n_objects(n_objects), index(index) {}
 
@@ -35,6 +38,7 @@ struct StackElem {
 class BVH {
 public:
     BVH();
+    ~BVH();
 
     void build(std::vector<IntersectableObj *> objs);
     bool intersect(const Ray &r, IntersectionInfo *info);
@@ -47,7 +51,10 @@ private:
 
 
     int n_nodes;
-    std::vector<BVHNode> _nodes;
+//    std::vector<BVHNode> _nodes;
+
+    std::vector<BVHNode *> _nodes;
+
     std::vector<IntersectableObj *> _objs;
 
 };

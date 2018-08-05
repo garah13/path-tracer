@@ -4,6 +4,7 @@
 #include "shapes/mesh.h"
 #include "scene/xmlsceneparser.h"
 #include "shapes/objparser.h"
+#include "cameras/camtranscamera.h"
 
 using namespace Eigen;
 
@@ -38,8 +39,17 @@ bool Scene::load(std::string filename) {
     }
     //TODO::get root node
     SceneNode *node = parser.getRootNode();
+
+    //TODO:: create camtrans camera
+
+
+    SceneCamera camera;
+    parser.getCameraData(camera);
+    m_camera = new CamtransCamera(camera.pos, camera.look, camera.up, camera.aspectRatio, camera.heightAngle);
+
     if (node) {
         parseTree(node, Affine3f::Identity());
+        m_bvh = new BVH();
         m_bvh->build(m_objs);
     }
     return true;
@@ -104,9 +114,12 @@ Mesh* Scene::loadMesh(std::string filename) {
     std::vector<Vector3f> normals;
     std::vector<Vector3i> faces;
     std::vector<Vector3i> facesNormals;
+    std::map<std::string, int> materialIds;
+    std::vector<Material> materials;
+    std::vector<int> faceMaterialId;
 
-    ObjParser::LoadObj(filename.c_str(), vertices, normals, faces, facesNormals);
-    return new Mesh(vertices, normals, faces);
+    ObjParser::LoadObj(filename.c_str(), vertices, normals, faces, facesNormals, materialIds, materials, faceMaterialId);
+    return new Mesh(vertices, normals, faces, facesNormals, materials, faceMaterialId);
 }
 
 
@@ -117,6 +130,7 @@ const Camera* Scene::getCamera() const {
 //ray in world space
 //m_bvh is in world space
 bool Scene::getIntersection(const Ray &r, IntersectionInfo &info) const {
+//    return m_objs[0]->intersect(r, &info);
     if (m_bvh) {
         return m_bvh->intersect(r, &info);
     }

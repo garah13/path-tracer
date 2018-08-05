@@ -20,8 +20,8 @@ public:
 
     bool intersect2(const Ray &r, float &tNear, float &tFar);
 
-    Eigen::Vector3f _bottomLeftCorner;
-    Eigen::Vector3f _topRightCorner;
+    Eigen::Vector3f _min;
+    Eigen::Vector3f _max;
     Eigen::Vector3f _extent;
 
 private:

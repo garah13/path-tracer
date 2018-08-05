@@ -4,6 +4,8 @@
 #include "iostream"
 
 XmlSceneParser::XmlSceneParser(std::string filename) : m_filename(filename) {
+
+
 }
 
 //destructor frees all the resources
@@ -64,6 +66,12 @@ bool XmlSceneParser::parse() {
     }
     f.close();
 
+    m_cameraData.pos = Eigen::Vector3f(5.f, 5.f, 5.f);
+    m_cameraData.up = Eigen::Vector3f(0.f, 1.f, 0.f);
+    m_cameraData.look = Eigen::Vector3f(-1.f, -1.f, -1.f);
+    m_cameraData.heightAngle = 45;
+    m_cameraData.aspectRatio = 1;
+
     QDomElement root = dom.documentElement();
     if (root.tagName() != "scenefile") {
         std::cout << "scenefile tag missing" << std::endl;
@@ -78,7 +86,7 @@ bool XmlSceneParser::parse() {
                 return false;
             }
         } else if (element.tagName() == "object") {
-            if (parseObjectData(element)) {
+            if (!parseObjectData(element)) {
                 return false;
             }
         } else if (!element.isNull()) {
@@ -144,8 +152,8 @@ bool XmlSceneParser::parseCameraData(const QDomElement &cameraData) {
                 error(element);
                 return false;
              }
-        } else if (element.tagName() == "heightAngle") {
-            if (!parseSingle(element, m_cameraData.heightAngle, "angle")) {
+        } else if (element.tagName() == "heightangle") {
+            if (!parseSingle(element, m_cameraData.heightAngle, "v")) {
                 error(element);
                 return false;
             }
@@ -295,7 +303,7 @@ bool XmlSceneParser::parsePrimitive(const QDomElement &primitiveData, SceneNode 
         std::cout << "primitive not supported : " << primType << std::endl;
         return false;
     }
-    return false;
+    return true;
 }
 
 void XmlSceneParser::error(const QDomElement &element) {

@@ -4,6 +4,7 @@
 #include "scene/xmlsceneparser.h"
 #include "scene/scene.h"
 #include <iostream>
+#include "pathtracer.h"
 
 #include "regex"
 #include "Eigen/Dense"
@@ -13,30 +14,17 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    std::string filename("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/untitled.obj");
-    std::vector<Vector3f> verts;
-    std::vector<Vector3f> normals;
-    std::vector<Vector3i> faces;
-    std::vector<Vector3i> faceNormals;
 
-    ObjParser::LoadObj(filename.c_str(), verts, normals, faces, faceNormals);
+    Scene *scene = new Scene();
+    scene->load("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/test.xml");
+    QImage image(200, 200, QImage::Format_RGB32);
+    PathTracer tracer(200, 200);
 
-    for (int i = 0; i < static_cast<int>(verts.size()); i++) {
-        std::cout << "v " << verts[i][0] << " " << verts[i][1] << " " << verts[i][2] << std::endl;
-    }
-    std::cout << std::endl;
-    for (int i = 0; i < static_cast<int>(normals.size()); i++) {
-        std::cout << "vn " << normals[i][0] << " " << normals[i][1] << " " << normals[i][2] << std::endl;
-    }
-    std::cout << std::endl;
-
-    for (int i = 0; i < static_cast<int>(faces.size()); i++) {
-        std::cout << "f " << faces[i][0] << " " << faces[i][1] << " " << faces[i][2] << std::endl;
-    }
-    std::cout << std::endl;
-
-    for (int i = 0; i < static_cast<int>(faceNormals.size()); i++) {
-        std::cout << "fn " << faceNormals[i][0] << " " << faceNormals[i][1] << " " << faceNormals[i][2] << std::endl;
+    QRgb *data = reinterpret_cast<QRgb *>(image.bits());
+    tracer.traceScene(*scene, data);
+    bool success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST.png");
+    if(!success) {
+        success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST.png", "PNG");
     }
 
     a.exit(0);

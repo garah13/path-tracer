@@ -1,16 +1,16 @@
 <scenefile>
 
 	<cameradata>
-		<pos x="5" y="5" z="5" />
-		<up x="0" y="1" z="0" />
-		<look x="0" y="0" z="-1" />
+		<pos x="0" y="1" z="5"/>
+        <up x="0" y="1" z="0"/>
+        <look x="0" y="0" z="-5"/>
+        <heightangle v="90"/>
 	</cameradata>
 
 
 	<object type="tree" name="root" >
 		<transblock>
-			<scale x="1" y="2" z="1" />
-			<object type="primitive" name="mesh" filename="models/boat.obj" />
+			<object type="primitive" name="mesh" filename="/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/untitled.obj" />
 		</transblock>
 	</object>
 </scenefile>

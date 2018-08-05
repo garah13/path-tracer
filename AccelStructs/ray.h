@@ -8,17 +8,17 @@ struct Ray {
 
 
     Ray(const Eigen::Vector3f &origin, const Eigen::Vector3f &direction) :
-        origin(origin), direction(direction), invDir(Eigen::Vector3f(1, 1, 1).cwiseProduct(direction).normalized()) {}
+        origin(origin), direction(direction.normalized()), invDir(Eigen::Vector3f(1, 1, 1).cwiseProduct(direction).normalized()) {}
 
-    Ray transform(Eigen::Matrix4Xf transform) {
-        Eigen::Vector4f o = transform * vec3Tovec4(origin, 0);
-        Eigen::Vector4f d = transform * vec3Tovec4(direction, 1);
+    Ray transform(Eigen::Matrix4f transform) const {
+        Eigen::Vector4f o = transform * vec3Tovec4(origin, 1);
+        Eigen::Vector4f d = transform * vec3Tovec4(direction, 0);
         return Ray(o.head<3>(), d.head<3>());
     }
 
-    Ray transform(Eigen::Affine3f transform) {
+    Ray transform(Eigen::Affine3f transform) const {
         Eigen::Vector3f oo = transform * origin;
-        Eigen::Vector3f od = transform.linear().inverse().transpose() * direction;
+        Eigen::Vector3f od =  transform.linear().inverse().transpose() * direction;
         return Ray(oo, od);
     }
 

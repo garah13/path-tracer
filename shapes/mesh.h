@@ -6,12 +6,14 @@
 
 #include "AccelStructs/intersectableobj.h"
 #include "shapes/triangle.h"
+#include "scene/material.h"
 
 class Mesh : public IntersectableObj
 {
 public:
     Mesh(std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
-         std::vector<Eigen::Vector3i> &faces);
+         std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals,
+         std::vector<Material> &materials, std::vector<int> &materialIds);
 
     void setTransform(const Eigen::Affine3f &transform);
 
@@ -30,6 +32,10 @@ private:
     std::vector<Eigen::Vector3f> _vertices;
     std::vector<Eigen::Vector3f> _normals;
     std::vector<Eigen::Vector3i> _faces;
+    std::vector<Eigen::Vector3i> _faceNormals;
+    std::vector<Material> _materials;
+    std::vector<int> _materialIds;
+
 
     Triangle* _triangles;
     AABB _bbox;

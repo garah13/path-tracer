@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "iostream"
 
 using namespace Eigen;
 
@@ -7,11 +8,15 @@ using namespace Eigen;
 // all the triangles and use that BVH when checking for triangle intersections
 
 Mesh::Mesh(std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
-           std::vector<Eigen::Vector3i> &faces) {
+           std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals,
+            std::vector<Material> &materials, std::vector<int> &materialIds) {
 
     _vertices = vertices;
     _normals = normals;
     _faces = faces;
+    _faceNormals = faceNormals;
+    _materials = materials;
+    _materialIds = materialIds;
     initiateBBox();
     initiateTriangles();
     setTransform(Affine3f::Identity());
@@ -23,16 +28,35 @@ void Mesh::initiateTriangles() {
     _triangles = new Triangle[size];
     for (int i = 0; i < size; i++) {
         Vector3i face = _faces[i];
+        Vector3i faceNormals = _faceNormals[i];
+
         Vector3f v0 = _vertices[face(0)];
         Vector3f v1 = _vertices[face(1)];
         Vector3f v2 = _vertices[face(2)];
-        Vector3f n0 = _normals[face(0)];
-        Vector3f n1 = _normals[face(1)];
-        Vector3f n2 = _normals[face(2)];
 
-        _triangles[i] = Triangle(v0, v1, v2, n0, n1, n2);
+        //todo::fix this
+        Vector3f n0 = _normals[faceNormals(0)];
+        Vector3f n1 = _normals[faceNormals(1)];
+        Vector3f n2 = _normals[faceNormals(2)];
+
+        _triangles[i] = Triangle(v0, v1, v2, n0, n1, n2, i);
         _bbox.expandToInclude(_triangles[i].getAABB());
     }
+
+//    std::cout << std::endl;
+//    IOFormat CommaInitFmt(FullPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";");
+
+//    for (int i = 0; i < _faces.size(); i++) {
+//        Vector3i face = _faces[i];
+//        int num = i + 1;
+
+//        std::cout << "triangle : " << num << std::endl << _vertices[face(0)].format(CommaInitFmt) << std::endl
+//                  <<  _vertices[face(1)].format(CommaInitFmt) << std::endl << _vertices[face(2)].format(CommaInitFmt) << std::endl;
+//        std::cout << std::endl;
+
+//    }
+
+
 }
 
 void Mesh::initiateBBox() {
@@ -48,7 +72,6 @@ void Mesh::initiateBBox() {
     _centroid /= size;
 }
 
-
 void Mesh::setTransform(const Affine3f &transform) {
     _transform = transform;
     _inverseTransform = transform.inverse();
@@ -58,7 +81,6 @@ void Mesh::setTransform(const Affine3f &transform) {
     //reset bounding box, right and recreate bounding volume heiarchy
 }
 
-
 //check what happens when it rotates??
 //because the top right might become bottom, etc.
 //no it will
@@ -66,14 +88,14 @@ void Mesh::setTransform(const Affine3f &transform) {
 //or find what the new box is, get max, min dimensions, and set it
 AABB Mesh::getAABB() const {
     AABB transformedBox = AABB();
-    transformedBox.setVertex(_transform * _bbox._bottomLeftCorner);
-    transformedBox.expandToInclude(_transform * _bbox._topRightCorner);
+    transformedBox.setVertex(_transform * _bbox._min);
+    transformedBox.expandToInclude(_transform * _bbox._max);
     return _bbox;
 }
 
 //transform it?
 Vector3f Mesh::getCentroid() const {
-    return _transform * ((_bbox._bottomLeftCorner + _bbox._topRightCorner) / 2.f);
+    return _transform * ((_bbox._min + _bbox._max) / 2.f);
 }
 
 

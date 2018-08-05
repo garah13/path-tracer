@@ -6,9 +6,9 @@
 class CamtransCamera : public Camera
 {
 public:
-    CamtransCamera();
+    CamtransCamera(const Eigen::Vector3f &eye, const Eigen::Vector3f &look, const Eigen::Vector3f &up,
+                   float aspectRatio, float heightAngle);
 
-    virtual void setAspectRatio(float ratio) = 0;
     virtual Eigen::Matrix4Xf getProjectionMatrix() const override;
     virtual Eigen::Matrix4Xf getViewMatrix() const override;
     virtual Eigen::Matrix4Xf getScaleMatrix() const override;
@@ -19,17 +19,13 @@ public:
     Eigen::Vector3f getUp() const;
 
     float getAspectRatio() const;
-    void setHeightAngle(float h);
     float getHeightAngle() const;
 
     void orientLook(const Eigen::Vector3f &eye, const Eigen::Vector3f &look, const Eigen::Vector3f &up);
-    void setClip(float nearPlane, float farPlane);
 
 private:
     float m_aspectRatio;
     float m_heightAngle;
-    float m_near;
-    float m_far;
 
     Eigen::Vector3f m_eye;
     Eigen::Vector3f m_w;
