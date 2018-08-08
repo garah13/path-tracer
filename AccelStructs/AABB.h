@@ -16,13 +16,15 @@ public:
     void expandToInclude(const Eigen::Vector3f &vertex);
     void expandToInclude(const AABB &box);
     int getMaxDimension();
-    bool intersect(const Ray &r);
 
-    bool intersect2(const Ray &r, float &tNear, float &tFar);
+    bool intersect(const Ray &r, float &tNear, float &tFar);
+
+    static AABB transformBBox(const AABB &box, const Eigen::Matrix4f &transform);
 
     Eigen::Vector3f _min;
     Eigen::Vector3f _max;
     Eigen::Vector3f _extent;
+    Eigen::Vector3f _centroid;
 
 private:
 

@@ -1,7 +1,7 @@
 # Blender v2.79 (sub 0) OBJ File: ''
 # www.blender.org
 
-mtllib /Users/sarahgilmore/Documents/code/pathtracer/scenefiles/untitled.mtl
+mtllib untitled.mtl
 
 v -1.000000 -1.000000 1.000000
 v -1.000000 1.000000 1.000000

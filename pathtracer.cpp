@@ -1,5 +1,6 @@
 #include "pathtracer.h"
 #include "iostream"
+#include "scene/material/material.h"
 
 using namespace Eigen;
 
@@ -16,6 +17,8 @@ void PathTracer::traceScene(const Scene &scene, QRgb *data) {
             Vector3f color = tracePixel(scene, x, y);
             rad[y * m_width + x] = color;
         }
+        std::cout << y << std::endl;
+
     }
 
     toneMap(data, rad);
@@ -39,8 +42,6 @@ void PathTracer::toneMap(QRgb *data, Vector3f *radiance) {
 Vector3f PathTracer::tracePixel(const Scene &scene, int x, int y) {
 
     Eigen::Matrix4f invViewMatrix = (scene.getCamera()->getScaleMatrix() * scene.getCamera()->getViewMatrix()).inverse();
-//    IOFormat HeavyFmt(FullPrecision, 0, ", ", ";\n", "[", "]", "[", "]");
-//    std::cout << invViewMatrix.format(HeavyFmt) << std::endl;
     Vector3f d((2.f * (x) / m_width) - 1.f, 1.f - (2.f * (y) / m_height), -1.f);
     Vector3f p(0, 0, 0);
     d.normalize();
@@ -54,12 +55,23 @@ Vector3f PathTracer::traceRay(const Scene &scene, const Ray &r) {
     IntersectionInfo info = IntersectionInfo();
 
     //if there is an intersection return red
-
     if (scene.getIntersection(r, info)) {
-//        std::cout << "intersect" << std::endl;
-        return Vector3f(1, 0, 0);
+//        return Vector3f(1, 0, 0);
+        Triangle *triangle = static_cast<Triangle *>(info.data);
+        const MtlMaterial mtlMat = static_cast<const Mesh *>(info.obj)->getMaterial(triangle->getIndex());
+        return mtlMat.diffuse;
+//        if (mtlMat.emissiveness.norm() > 0.f) {
+//            return mtlMat.emissiveness;
+//        }
+//        Vector3f normal = triangle->getNormal(info);
+//        Material *mat = Material::material(mtlMat);
+//        if (ProbUtil::random(0, 1) < .5f) {
+//            SampleInfo sample = mat->sampleRay(r, normal, mtlMat);
+//            Ray outgoing(r.origin, sample.direction);
+//            Vector3f bsdf = mat->bsdf(r, outgoing, normal, mtlMat);
+//            return bsdf * sample.direction.dot(normal) / (sample.prob * .5f);
+//        }
     }
-//    std::cout << "no intersect" << std::endl;
 
     return Vector3f(0, 0, 0);
 }

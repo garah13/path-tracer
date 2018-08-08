@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
 
     QRgb *data = reinterpret_cast<QRgb *>(image.bits());
     tracer.traceScene(*scene, data);
-    bool success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST.png");
-    if(!success) {
-        success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST.png", "PNG");
+    bool success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST2.png");
+    if(success) {
+        success = image.save("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/TEST2.png", "PNG");
     }
 
     a.exit(0);

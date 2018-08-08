@@ -22,9 +22,9 @@ public:
 
 private:    
 
-    bool parseTree(SceneNode *node, const Eigen::Affine3f &parentTransform);
-    bool parsePrimitive(ScenePrimitive *prim, const Eigen::Affine3f &transform);
-    Mesh* loadMesh(std::string filename);
+    bool parseTree(SceneNode *node, const Eigen::Affine3f &parentTransform, const std::string &baseDir);
+    bool parsePrimitive(ScenePrimitive *prim, const Eigen::Affine3f &transform, const std::string &baseDir);
+    Mesh* loadMesh(std::string filename, const std::string &baseDir);
 
     //called by destructor and load to remove previous scene data
     void clearScene();

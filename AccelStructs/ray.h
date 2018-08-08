@@ -18,7 +18,7 @@ struct Ray {
 
     Ray transform(Eigen::Affine3f transform) const {
         Eigen::Vector3f oo = transform * origin;
-        Eigen::Vector3f od =  transform.linear().inverse().transpose() * direction;
+        Eigen::Vector3f od =  transform.linear() * direction;
         return Ray(oo, od);
     }
 

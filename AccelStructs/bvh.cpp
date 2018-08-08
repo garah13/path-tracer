@@ -1,5 +1,6 @@
 #include "bvh.h"
 #include <stack>
+#include "iostream"
 
 BVH::BVH() : n_nodes(0) {
 
@@ -15,6 +16,7 @@ BVH::~BVH() {
 
 //make all of these pointers
 void BVH::build(std::vector<IntersectableObj *> objs) {
+    std::cout << "building" << std::endl;
     _objs = objs;
     int size = _objs.size();
     _nodes = std::vector<BVHNode *>(2 * size + 1);
@@ -32,20 +34,37 @@ void BVH::build(std::vector<IntersectableObj *> objs) {
     BVHNode *node = new BVHNode(worldBox, false, size, n_nodes);
     _nodes[n_nodes] = node;
     n_nodes = 1;
-    buildRecursive(_nodes[0], 0, size);
+    buildRecursive(_nodes[0], 0, size, 0);
+    std::cout << "building finished" << std::endl;
+
 }
 
-void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
-    if (rightIndex - leftIndex <= 2) {
+void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex, int depth) {
+    node->index = n_nodes; //next child
+    if (depth >= 5 || rightIndex - leftIndex <= 2) {
         node->makeLeaf(leftIndex, rightIndex - leftIndex);
         return;
     }
 
     int maxDimension = node->box.getMaxDimension();
     CompareObjs cmp;
+
+    //TODO::
     cmp.compareDimension = maxDimension;
-    std::sort(_objs.begin() + leftIndex, _objs.end() + rightIndex, cmp);
+
+    std::cout << "pre sort" << std::endl;
+    for (int i = 0; i < _objs.size(); i++) {
+        std::cout << _objs[i]->getCentroid()[maxDimension] << std::endl;
+    }
+
+    std::sort(_objs.begin() + leftIndex, _objs.begin() + rightIndex, cmp);
+    std::cout << "post sort" << std::endl;
+    for (int i = 0; i < _objs.size(); i++) {
+        std::cout << _objs[i]->getCentroid()[maxDimension] << std::endl;
+    }
     float midpoint = (node->box._max[maxDimension] + node->box._min[maxDimension]) / 2.f;
+
+
     int splitIndex = 0;
     for (splitIndex = leftIndex; splitIndex < rightIndex; splitIndex++) {
         if (_objs[splitIndex]->getCentroid()[maxDimension] >= midpoint) {
@@ -60,7 +79,7 @@ void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
 
     AABB leftBox = _objs[leftIndex]->getAABB();
     AABB rightBox = _objs[splitIndex]->getAABB();
-    for (int i = leftIndex + 1; i < splitIndex; i++) {
+    for (int i = leftIndex; i < splitIndex; i++) {
         leftBox.expandToInclude(_objs[i]->getAABB());
     }
     for (int i = splitIndex; i < rightIndex; i++) {
@@ -72,8 +91,8 @@ void BVH::buildRecursive(BVHNode *node, int leftIndex, int rightIndex) {
     _nodes[n_nodes] = leftNode;
     _nodes[n_nodes + 1] = rightNode;
     n_nodes += 2;
-    buildRecursive(leftNode, leftIndex, splitIndex);
-    buildRecursive(rightNode, splitIndex, rightIndex);
+    buildRecursive(leftNode, leftIndex, splitIndex, depth + 1);
+    buildRecursive(rightNode, splitIndex, rightIndex, depth + 1);
 }
 
 bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
@@ -88,8 +107,26 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
             leftChild = _nodes[currNode->index];
             rightChild = _nodes[currNode->index + 1];
             float tLeftNear, tLeftFar, tRightNear, tRightFar;
-            bool leftIntersect = leftChild->box.intersect2(r, tLeftNear, tLeftFar);
-            bool rightIntersect = rightChild->box.intersect2(r, tRightNear, tRightFar);
+            bool leftIntersect = leftChild->box.intersect(r, tLeftNear, tLeftFar);
+            bool rightIntersect = rightChild->box.intersect(r, tRightNear, tRightFar);
+
+            //TODO::fix algorithm so that intersect returns false if
+            //intersection is behind it
+            if (leftIntersect && tLeftNear < 0) {
+                if (tLeftFar < 0) {
+                    leftIntersect = false;
+                } else {
+                    tLeftNear = tLeftFar;
+                }
+            }
+            if (rightIntersect && tRightNear < 0) {
+                if (tRightFar < 0) {
+                    rightIntersect = false;
+                } else {
+                    tRightNear = tRightFar;
+                }
+            }
+
 
             //TODO::check if we need to traverse the left and right children
             if (leftIntersect && rightIntersect) {
@@ -99,6 +136,7 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
                     continue;
                 } else {
                     stack.push(StackElem(leftChild, tLeftNear));
+                    currNode = rightChild;
                     continue;
                 }
             } else if (leftIntersect) {
@@ -109,7 +147,7 @@ bool BVH::intersect(const Ray &r, IntersectionInfo *info) {
                 continue;
             }
      } else { //hit a leaf node
-         for (int i = currNode->index; i < currNode->index + currNode->n_objects; i++) {
+            for (int i = currNode->index; i < currNode->index + currNode->n_objects; i++) {
             IntersectionInfo local;
 
             //if there was an intersection

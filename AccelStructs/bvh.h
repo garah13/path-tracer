@@ -47,7 +47,7 @@ public:
 
 private:
 
-    void buildRecursive(BVHNode *node, int leftIndex, int rightIndex);
+    void buildRecursive(BVHNode *node, int leftIndex, int rightIndex, int depth);
 
 
     int n_nodes;

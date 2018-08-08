@@ -41,10 +41,10 @@ bool XmlSceneParser::getCameraData(SceneCamera &data) const {
 }
 
 SceneNode* XmlSceneParser::getRootNode() const {
-    if (m_sceneNodes.size() == 0) {
-        return nullptr;
+    if (m_nodeMap.find("root") != m_nodeMap.end()) {
+        return m_nodeMap.find("root")->second;
     }
-    return m_sceneNodes[0];
+    return nullptr;
 }
 
 //could return bool
@@ -218,7 +218,7 @@ bool XmlSceneParser::parseObjectData(const QDomElement &objectData) {
 }
 
 
-bool XmlSceneParser::parseTransBlock(const QDomElement &transBlockData, SceneNode * node) {
+bool XmlSceneParser::parseTransBlock(const QDomElement &transBlockData, SceneNode *node) {
     QDomNode child = transBlockData.firstChild();
     while (!child.isNull()) {
         QDomElement element = child.toElement();
@@ -247,6 +247,7 @@ bool XmlSceneParser::parseTransBlock(const QDomElement &transBlockData, SceneNod
                 error(element);
                 return false;
             }
+            transform->angle = transform->angle * M_PI / 180;
         } else if (element.tagName() == "object") {
             if (element.attribute("type") == "master") {
                 std::string key = element.attribute("name").toStdString();

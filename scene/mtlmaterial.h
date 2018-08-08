@@ -1,12 +1,12 @@
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#ifndef MTLMATERIAL_H
+#define MTLMATERIAL_H
 
 #include "string"
 
 #include "Eigen/Dense"
 
 //defualt to zero
-struct Material {
+struct MtlMaterial {
     std::string name;
     Eigen::Vector3f ambient;
     Eigen::Vector3f diffuse;
@@ -30,9 +30,9 @@ struct Material {
         dissolve = 0.f;
         ior = 0.f;
 
-
-
     }
 };
+
+
 
 #endif // MATERIAL_H

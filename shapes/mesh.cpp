@@ -9,7 +9,7 @@ using namespace Eigen;
 
 Mesh::Mesh(std::vector<Eigen::Vector3f> &vertices, std::vector<Eigen::Vector3f> &normals,
            std::vector<Eigen::Vector3i> &faces, std::vector<Eigen::Vector3i> &faceNormals,
-            std::vector<Material> &materials, std::vector<int> &materialIds) {
+            std::vector<MtlMaterial> &materials, std::vector<int> &materialIds) {
 
     _vertices = vertices;
     _normals = normals;
@@ -40,23 +40,7 @@ void Mesh::initiateTriangles() {
         Vector3f n2 = _normals[faceNormals(2)];
 
         _triangles[i] = Triangle(v0, v1, v2, n0, n1, n2, i);
-        _bbox.expandToInclude(_triangles[i].getAABB());
     }
-
-//    std::cout << std::endl;
-//    IOFormat CommaInitFmt(FullPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";");
-
-//    for (int i = 0; i < _faces.size(); i++) {
-//        Vector3i face = _faces[i];
-//        int num = i + 1;
-
-//        std::cout << "triangle : " << num << std::endl << _vertices[face(0)].format(CommaInitFmt) << std::endl
-//                  <<  _vertices[face(1)].format(CommaInitFmt) << std::endl << _vertices[face(2)].format(CommaInitFmt) << std::endl;
-//        std::cout << std::endl;
-
-//    }
-
-
 }
 
 void Mesh::initiateBBox() {
@@ -70,6 +54,7 @@ void Mesh::initiateBBox() {
         _bbox.expandToInclude(_vertices[i]);
     }
     _centroid /= size;
+    _transformedBox = _bbox;
 }
 
 void Mesh::setTransform(const Affine3f &transform) {
@@ -79,29 +64,28 @@ void Mesh::setTransform(const Affine3f &transform) {
     _inverseNormalTransform = transform.linear().inverse().transpose();
 
     //reset bounding box, right and recreate bounding volume heiarchy
-}
+    _transformedBox = AABB::transformBBox(_bbox, _transform.matrix());
 
-//check what happens when it rotates??
-//because the top right might become bottom, etc.
-//no it will
+}
 
 //or find what the new box is, get max, min dimensions, and set it
 AABB Mesh::getAABB() const {
-    AABB transformedBox = AABB();
-    transformedBox.setVertex(_transform * _bbox._min);
-    transformedBox.expandToInclude(_transform * _bbox._max);
-    return _bbox;
+    return _transformedBox;
 }
 
 //transform it?
 Vector3f Mesh::getCentroid() const {
-    return _transform * ((_bbox._min + _bbox._max) / 2.f);
+    return _transformedBox._centroid;
 }
-
 
 //must transform the normal to world from object
 Vector3f Mesh::getNormal(const IntersectionInfo &info) const {
-    return static_cast<IntersectableObj *>(info.data)->getNormal(info);
+    return _inverseNormalTransform * static_cast<IntersectableObj *>(info.data)->getNormal(info);
+}
+
+
+const MtlMaterial& Mesh::getMaterial(int index) const {
+    return _materials[_materialIds[index]];
 }
 
 //for now just loop through all of the triangles
@@ -110,10 +94,11 @@ Vector3f Mesh::getNormal(const IntersectionInfo &info) const {
 
 //incoming ray will be in world, transform it to object
 bool Mesh::intersect(const Ray &r, IntersectionInfo *info) const {
+   Ray ray(r.transform(_inverseTransform));
     int size = _faces.size();
     for (int i = 0; i < size; i++) {
         IntersectionInfo local = IntersectionInfo();
-        if (_triangles[i].intersect(r, &local)) {
+        if (_triangles[i].intersect(ray, &local)) {
             if (local.t < info->t) {
                 info->t = local.t;
                 info->data = (void *) (local.obj);

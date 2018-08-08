@@ -32,6 +32,9 @@ void Scene::clearScene() {
 
 
 bool Scene::load(std::string filename) {
+
+    QFileInfo info(QString::fromStdString(filename));
+    QString dir = info.path();
     XmlSceneParser parser = XmlSceneParser(filename);
     if (!parser.parse()) {
         std::cout << "failed to parse" << std::endl;
@@ -48,7 +51,7 @@ bool Scene::load(std::string filename) {
     m_camera = new CamtransCamera(camera.pos, camera.look, camera.up, camera.aspectRatio, camera.heightAngle);
 
     if (node) {
-        parseTree(node, Affine3f::Identity());
+        parseTree(node, Affine3f::Identity(), dir.toStdString() + "/");
         m_bvh = new BVH();
         m_bvh->build(m_objs);
     }
@@ -56,7 +59,7 @@ bool Scene::load(std::string filename) {
 }
 
 //need to pass transformation as well
-bool Scene::parseTree(SceneNode *node, const Affine3f &parentTransform) {
+bool Scene::parseTree(SceneNode *node, const Affine3f &parentTransform, const std::string &baseDir) {
     Affine3f transform = parentTransform;
     int size = node->transformations.size();
     for (int i = 0; i < size; i++) {
@@ -79,14 +82,14 @@ bool Scene::parseTree(SceneNode *node, const Affine3f &parentTransform) {
 
     size = node->primitives.size();
     for (int i = 0; i < size; i++) {
-        if (!parsePrimitive(node->primitives[i], transform)) {
+        if (!parsePrimitive(node->primitives[i], transform, baseDir)) {
             return false;
         }
     }
 
     size = node->children.size();
     for (int i = 0; i < size; i++) {
-        if (!parseTree(node->children[i], transform)) {
+        if (!parseTree(node->children[i], transform, baseDir)) {
             return false;
         }
     }
@@ -94,11 +97,11 @@ bool Scene::parseTree(SceneNode *node, const Affine3f &parentTransform) {
     return true;
 }
 
-bool Scene::parsePrimitive(ScenePrimitive *prim, const Affine3f &transform) {
+bool Scene::parsePrimitive(ScenePrimitive *prim, const Affine3f &transform, const std::string &baseDir) {
 
     //TODO::load Mesh and fix transform
     if (prim->type == MESH) {
-        Mesh *mesh = loadMesh(prim->meshfile);
+        Mesh *mesh = loadMesh(prim->meshfile, baseDir);
         mesh->setTransform(transform);
         m_objs.push_back(mesh);
     } else {
@@ -109,16 +112,16 @@ bool Scene::parsePrimitive(ScenePrimitive *prim, const Affine3f &transform) {
     return true;
 }
 
-Mesh* Scene::loadMesh(std::string filename) {
+Mesh* Scene::loadMesh(std::string filename, const std::string &baseDir) {
     std::vector<Vector3f> vertices;
     std::vector<Vector3f> normals;
     std::vector<Vector3i> faces;
     std::vector<Vector3i> facesNormals;
     std::map<std::string, int> materialIds;
-    std::vector<Material> materials;
+    std::vector<MtlMaterial> materials;
     std::vector<int> faceMaterialId;
 
-    ObjParser::LoadObj(filename.c_str(), vertices, normals, faces, facesNormals, materialIds, materials, faceMaterialId);
+    ObjParser::LoadObj(filename.c_str(), baseDir, vertices, normals, faces, facesNormals, materialIds, materials, faceMaterialId);
     return new Mesh(vertices, normals, faces, facesNormals, materials, faceMaterialId);
 }
 
@@ -130,7 +133,6 @@ const Camera* Scene::getCamera() const {
 //ray in world space
 //m_bvh is in world space
 bool Scene::getIntersection(const Ray &r, IntersectionInfo &info) const {
-//    return m_objs[0]->intersect(r, &info);
     if (m_bvh) {
         return m_bvh->intersect(r, &info);
     }

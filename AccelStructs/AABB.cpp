@@ -1,6 +1,7 @@
 #include "AABB.h"
 #include <iostream>
-
+#include <math.h>
+#include <vector>
 using namespace Eigen;
 
 //creates a axis-aligned bounding box
@@ -12,12 +13,32 @@ AABB::AABB(const Vector3f &min, const Vector3f &max) {
     _min = min;
     _max = max;
     _extent = max - min;
+    _centroid = (_min + _max) / 2.f;
 }
 
 AABB::AABB() {
     _min = Vector3f(0, 0, 0);
     _max = Vector3f(0, 0, 0);
     _extent = Vector3f(0, 0, 0);
+    _centroid = Vector3f(0, 0, 0);
+}
+
+//for now the slow version
+AABB AABB::transformBBox(const AABB &box, const Matrix4f &transform) {
+    std::vector<Vector3f> vertices = { box._max, Vector3f(box._max(0), box._max(1), box._min(2)),
+                                       Vector3f(box._max(0), box._min(1), box._max(2)), Vector3f(box._min(0),
+                                       box._max(1), box._max(2)), Vector3f(box._max(0), box._min(1), box._min(2)),
+                                       Vector3f(box._min(0), box._min(1), box._max(2)),
+                                       Vector3f(box._min(0), box._max(1), box._min(2)), box._min};
+    Vector3f min(INFINITY, INFINITY, INFINITY);
+    Vector3f max(-INFINITY, -INFINITY, -INFINITY);
+
+    for (int i = 0; i < 8; i++) {
+        Vector4f p = transform * vec3Tovec4(vertices[i], 1);
+        min = min.cwiseMin(p.head<3>());
+        max = max.cwiseMax(p.head<3>());
+    }
+    return AABB(min, max);
 }
 
 //sets initial vertex
@@ -25,6 +46,7 @@ void AABB::setVertex(const Vector3f &vertex) {
     _min = vertex;
     _max = vertex;
     _extent = _max - _min;
+    _centroid = (_min + _max) / 2.f;
 }
 
 //expands to include point
@@ -32,6 +54,8 @@ void AABB::expandToInclude(const Vector3f &vertex) {
     _min = _min.cwiseMin(vertex);
     _max = _max.cwiseMax(vertex);
     _extent = _max - _min;
+    _centroid = (_min + _max) / 2.f;
+
 }
 
 //expand to include box
@@ -39,6 +63,7 @@ void AABB::expandToInclude(const AABB &box) {
     _min = _min.cwiseMin(box._min);
     _max = _max.cwiseMax(box._max);
     _extent = _max - _min;
+    _centroid = (_min + _max) / 2.f;
 }
 
 //returns dimension with the maximum extent
@@ -56,39 +81,7 @@ int AABB::getMaxDimension() {
     return maxDim;
 }
 
-//assumes bounding box is axis aligned
-bool AABB::intersect(const Ray &r) {
-    float t0x, t1x, t0y, t1y, t0z, t1z;
-    computeTMinMax(r, 0, t0x, t1x);
-    computeTMinMax(r, 1, t0y, t1y);
-    computeTMinMax(r, 2, t0z, t1z);
-
-    float tmin = -INFINITY;
-    float tmax = INFINITY;
-
-    tmin = t0x;
-    tmax = t1x;
-
-    //todo -> make sure comparisons don't have floating point errors
-    if (t0y > tmax || t1y < tmin) {
-        return false;
-    }
-
-    tmin = std::fmin(t0y, tmin);
-    tmax = std::fmax(t1y, tmax);
-
-    //todo -> make sure comparisons don't have floating point errors
-    if (t0z > tmax || t1z < tmin) {
-        return false;
-    }
-
-    tmin = std::fmin(t0z, tmin);
-    tmax = std::fmax(t1z, tmax);
-    return true;
-}
-
-
-bool AABB::intersect2(const Ray &r, float &tNear, float &tFar) {
+bool AABB::intersect(const Ray &r, float &tNear, float &tFar) {
     float t0x, t1x, t0y, t1y, t0z, t1z;
     computeTMinMax(r, 0, t0x, t1x);
     computeTMinMax(r, 1, t0y, t1y);
@@ -106,7 +99,7 @@ bool AABB::intersect2(const Ray &r, float &tNear, float &tFar) {
     tFar = std::fmax(t1y, tFar);
 
     //todo -> make sure comparisons don't have floating point errors
-    if (t0z > tFar || t1z < tFar) {
+    if (t0z > tFar || t1z < tNear) {
         return false;
     }
 

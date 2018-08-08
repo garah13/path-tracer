@@ -2,7 +2,8 @@
 
 #include <fstream>
 #include <iostream>
-
+#include "string"
+#include "QString"
 
 using namespace Eigen;
 
@@ -22,10 +23,13 @@ ObjParser::ObjParser() {
 //first thing is to only parse out vertex coordinates
 //then normals
 //etc.
-void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, std::vector<Vector3f> &normals, std::vector<Vector3i> &faces,
-                        std::vector<Vector3i> &faceNormals, std::map<std::string, int> &materialIds, std::vector<Material> &materials, std::vector<int> &faceMaterialId) {
+void ObjParser::LoadObj(const char *filename, std::string baseDir, std::vector<Vector3f> &vertices, std::vector<Vector3f> &normals, std::vector<Vector3i> &faces,
+                        std::vector<Vector3i> &faceNormals, std::map<std::string, int> &materialIds, std::vector<MtlMaterial> &materials, std::vector<int> &faceMaterialId) {
 
-    std::ifstream ifs(filename, std::ifstream::in);
+    QString path = QString::fromStdString(baseDir);
+    path.append(QString(filename));
+
+    std::ifstream ifs(path.toStdString().c_str(), std::ifstream::in);
     if (!ifs) {
         std::cout << "file could not be opened: " << filename << std::endl;
         std::exit(1);
@@ -69,7 +73,6 @@ void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, s
             Vector3f v;
             parseVertex(token, v(0), v(1), v(2));
             vertices.push_back(v);
-            faceMaterialId.push_back(currMaterialId);
             continue;
         }
 
@@ -91,6 +94,7 @@ void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, s
             parseFace(token, f(0), f(1), f(2), fn(0), fn(1), fn(2));
             faces.push_back(f);
             faceNormals.push_back(fn);
+            faceMaterialId.push_back(currMaterialId);
             continue;
         }
 
@@ -99,7 +103,7 @@ void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, s
             token += 7;
             std::stringstream matFileName;
             matFileName << token;
-            const char *fn = matFileName.str().c_str();
+            const char *fn = baseDir.append(matFileName.str()).c_str();
             loadMtl(fn, materialIds, materials);
             continue;
         }
@@ -127,14 +131,14 @@ void ObjParser::LoadObj(const char *filename, std::vector<Vector3f> &vertices, s
     //only support decimals now
 }
 
-void ObjParser::loadMtl(const char* filename, std::map<std::string, int> &materialIds, std::vector<Material> &materials) {
+void ObjParser::loadMtl(const char* filename, std::map<std::string, int> &materialIds, std::vector<MtlMaterial> &materials) {
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs) {
         std::cout << "file could not be opened: " << filename << std::endl;
         std::exit(1);
     }
 
-    Material mat;
+    MtlMaterial mat;
     mat.flush();
     while (ifs.peek() != EOF) {
         std::string linebuf;
