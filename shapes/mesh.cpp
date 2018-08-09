@@ -80,7 +80,7 @@ Vector3f Mesh::getCentroid() const {
 
 //must transform the normal to world from object
 Vector3f Mesh::getNormal(const IntersectionInfo &info) const {
-    return _inverseNormalTransform * static_cast<IntersectableObj *>(info.data)->getNormal(info);
+    return (_inverseNormalTransform.linear() * static_cast<IntersectableObj *>(info.data)->getNormal(info)).normalized();
 }
 
 
@@ -103,7 +103,7 @@ bool Mesh::intersect(const Ray &r, IntersectionInfo *info) const {
                 info->t = local.t;
                 info->data = (void *) (local.obj);
                 info->obj = this;
-                info->hit = local.hit;
+                info->hit = _transform * local.hit;
             }
         }
     }

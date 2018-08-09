@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 
     Scene *scene = new Scene();
     scene->load("/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/test.xml");
-    QImage image(200, 200, QImage::Format_RGB32);
-    PathTracer tracer(200, 200);
+    QImage image(400, 400, QImage::Format_RGB32);
+    PathTracer tracer(400, 400);
 
     QRgb *data = reinterpret_cast<QRgb *>(image.bits());
     tracer.traceScene(*scene, data);

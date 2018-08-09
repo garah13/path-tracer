@@ -21,7 +21,7 @@ Vector3f ProbUtil::tangentToWorldSpace(const Vector3f &sample, const Vector3f &n
     Vector3f vec = std::fabs(normal.x()) > .1f ? Vector3f(0, 1, 0) : Vector3f(1, 0, 0);
     Vector3f tangent = normal.cross(vec).normalized();
     Vector3f bitangent = normal.cross(tangent).normalized();
-    return (sample(0) * tangent + sample(1) * bitangent + sample(3) * normal).normalized();
+    return (sample(0) * tangent + sample(1) * bitangent + sample(2) * normal).normalized();
 }
 
 
