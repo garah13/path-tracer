@@ -14,4 +14,9 @@ inline bool floatEpsEqual(float a, float b) {
     return fabs(a - b) < FLOAT_EPSILON;
 }
 
+
+inline Eigen::Vector3f reflectVector(const Eigen::Vector3f &incident, const Eigen::Vector3f &normal) {
+    return incident - 2 * incident.dot(normal) * normal;
+}
+
 #endif // EIGENUTIL_H

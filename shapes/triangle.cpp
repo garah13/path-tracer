@@ -85,20 +85,42 @@ int Triangle::getIndex() {
 }
 
 Vector3f Triangle::getNormal(const IntersectionInfo &info) const {
+//    Vector3f v0 = _v1 - _v0;
+//    Vector3f v1 = _v2 - _v0;
+//    Vector3f v2 = info.hit - _v0;
+
+//    float d00 = v0.dot(v0);
+//    float d01 = v0.dot(v1);
+//    float d11 = v1.dot(v1);
+//    float d20 = v2.dot(v0);
+//    float d21 = v2.dot(v1);
+
+//    float denom = d00 * d11 - d01 * d01;
+//    float w = (d20 * d11 - d21 * d01) / denom;
+//    float v = (d21 * d00 - d01 * d20) / denom;
+//    float u = 1.f - w - v;
+
+//    return _n0 * u + _n1 * v + _n2 * w;
+
+
+    Vector3f p = info.hit;
     Vector3f v0 = _v1 - _v0;
     Vector3f v1 = _v2 - _v0;
-    Vector3f v2 = info.hit - _v0;
-
+    Vector3f v2 = p - _v0;
     float d00 = v0.dot(v0);
     float d01 = v0.dot(v1);
     float d11 = v1.dot(v1);
     float d20 = v2.dot(v0);
     float d21 = v2.dot(v1);
-
     float denom = d00 * d11 - d01 * d01;
-    float w = (d20 * d11 - d21 * d01) / denom;
-    float v = (d21 * d00 - d01 * d20) / denom;
-    float u = 1.f - w - v;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.f - v - w;
 
-    return _n0 * u + _n1 * v + _n2 * w;
+    Vector3f n = v0.cross(v1);
+    //If normals weren't loaded from file, calculate them instead (This will be flat shading, not smooth shading)
+    Vector3f n1 = floatEpsEqual(_n0.squaredNorm(), 0) ? n : _n0;
+    Vector3f n2 = floatEpsEqual(_n1.squaredNorm(), 0) ? n : _n1;
+    Vector3f n3 = floatEpsEqual(_n2.squaredNorm(), 0) ? n : _n2;
+    return (u * n1 + v * n2 + w * n3);
 }

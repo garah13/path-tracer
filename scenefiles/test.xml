@@ -9,39 +9,7 @@
     </cameradata>
 
 
-<!-- 	<object type="tree" name="cube">
-		<transblock>
-			<translate x="-1" y="0" z="0" />
-			<object type="primitive" name="mesh" filename="untitled.obj" />
-		</transblock>
-	</object> -->
-
-<!-- 
-    <object type="tree" name="cube2">
-        <transblock>
-        <translate x="-2" y="2.5" z="0" />
-        <object type="primitive" name="mesh" filename="/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/untitled.obj" />
-        </transblock>
-    </object>
-
-
-
-    <object type="tree" name="cube3">
-        <transblock>
-        <translate x="2" y="3.5" z="0" />
-        <object type="primitive" name="mesh" filename="/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/untitled.obj" />
-        </transblock>
-    </object>
-
-
-	<object type="tree" name="torus">
-		<transblock>
-			<object type="primitive" name="mesh" filename="/Users/sarahgilmore/Documents/code/pathtracer/scenefiles/torus.obj" />
-		</transblock>
-	</object>
- -->
-
-	<object type="tree" name="backwall">
+	<!-- <object type="tree" name="backwall">
 		<transblock>
 			<translate x="0" y="0" z="-1" />
 			<scale x="1.5" y="1.5" z="1" />
@@ -52,53 +20,58 @@
 	<object type="tree" name="floor">
 		<transblock>
 			<translate x="0" y="-1.5" z="0" />
-			<scale x="1.5" y="1" z="1" />
 			<rotate x="1" y="0" z="0" angle="-90" />
+			<scale x="1.5" y="1" z="1" />
 			<object type="primitive" name="mesh" filename="wall2.obj" />
 		</transblock>
-	</object>
+	</object> -->
 
-	<object type="tree" name="ceiling">
+	<!-- <object type="tree" name="ceiling">
 	<transblock>
 		<translate x="0" y="1.5" z="0" />
-		<scale x="1.5" y="1" z="1" />
 		<rotate x="1" y="0" z="0" angle="90" />
+		<scale x="1.5" y="1" z="1" />
 		<object type="primitive" name="mesh" filename="ceiling.obj" />
 	</transblock>
 	</object>
 
 
-	<object type="tree" name="rightwall">
+	<object type="tree" name="leftwall">
 		<transblock>
 		<translate x="-1.5" y="0" z="0" />
-		<scale x="1" y="1.5" z="1" angle="90" />
 		<rotate x="0" y="1" z="0" angle="90" />
+		<scale x="1" y="1.5" z="1" />
 		<object type="primitive" name="mesh" filename="wall3.obj" />
 	</transblock>
 	</object>
 
-	<object type="tree" name="leftwall">
+	<object type="tree" name="rightwall">
 		<transblock>
 		<translate x="1.5" y="0" z="0" />
-		<scale x="1" y="1.5" z="1" angle="90" />
 		<rotate x="0" y="1" z="0" angle="-90" />
+		<scale x="1" y="1.5" z="1" />
 		<object type="primitive" name="mesh" filename="wall4.obj" />
 	</transblock>
+	</object> -->
+
+	<object type="tree" name="cube">
+		<transblock>
+		<translate x="0" y="-1.24" z="0" />
+		<scale x="0.25" y="0.25" z="0.25" />
+		<object type="primitive" name="mesh" filename="cube.obj" />
+	</transblock>
+
 	</object>
 
 	<object type="tree" name="root" >
 		<transblock>
 		<translate x="0" y="1" z="0" />
-			<!-- <object type="master" name="cube" /> -->
-             <!-- <object type="master" name="cube3" />  -->
-            <!-- <object type="master" name="cube2" /> -->
-            <object type="master" name="backwall" />
-            <object type="master" name="floor" />
-            <object type="master" name="ceiling" />
+            <!-- <object type="master" name="backwall" /> -->
+            <!-- <object type="master" name="floor" /> -->
+<!--             <object type="master" name="ceiling" />
             <object type="master" name="rightwall" />
-            <object type="master" name="leftwall" />
-
-
+            <object type="master" name="leftwall" /> -->
+            <object type="master" name="cube" />
         </transblock>
 	</object>
 </scenefile>

@@ -57,6 +57,7 @@ void Mesh::initiateBBox() {
     _transformedBox = _bbox;
 }
 
+//TODO:: go over this shit
 void Mesh::setTransform(const Affine3f &transform) {
     _transform = transform;
     _inverseTransform = transform.inverse();
@@ -80,7 +81,14 @@ Vector3f Mesh::getCentroid() const {
 
 //must transform the normal to world from object
 Vector3f Mesh::getNormal(const IntersectionInfo &info) const {
-    return (_inverseNormalTransform.linear() * static_cast<IntersectableObj *>(info.data)->getNormal(info)).normalized();
+
+    //assume data is in world so
+    IntersectionInfo duplicate = info;
+
+//    //get hit in into object space
+    duplicate.hit = _inverseTransform * info.hit;
+
+    return (_inverseNormalTransform.linear() * static_cast<IntersectableObj *>(duplicate.data)->getNormal(duplicate)).normalized();
 }
 
 
@@ -94,16 +102,20 @@ const MtlMaterial& Mesh::getMaterial(int index) const {
 
 //incoming ray will be in world, transform it to object
 bool Mesh::intersect(const Ray &r, IntersectionInfo *info) const {
-   Ray ray(r.transform(_inverseTransform));
+   Ray ray(r.transform(_inverseTransform.matrix()));
     int size = _faces.size();
     for (int i = 0; i < size; i++) {
         IntersectionInfo local = IntersectionInfo();
         if (_triangles[i].intersect(ray, &local)) {
+
             if (local.t < info->t) {
                 info->t = local.t;
                 info->data = (void *) (local.obj);
                 info->obj = this;
-                info->hit = _transform * local.hit;
+
+                //r is in world
+                info->hit = (r.origin + r.direction * local.t);
+
             }
         }
     }
