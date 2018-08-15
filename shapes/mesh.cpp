@@ -102,20 +102,18 @@ const MtlMaterial& Mesh::getMaterial(int index) const {
 
 //incoming ray will be in world, transform it to object
 bool Mesh::intersect(const Ray &r, IntersectionInfo *info) const {
-   Ray ray(r.transform(_inverseTransform.matrix()));
+    Ray ray = r.transform(_inverseTransform.matrix());
     int size = _faces.size();
     for (int i = 0; i < size; i++) {
         IntersectionInfo local = IntersectionInfo();
         if (_triangles[i].intersect(ray, &local)) {
-
+            Vector3f hit = _transform * (ray.origin + local.t * ray.direction);
+            local.t = (hit - r.origin).norm();
             if (local.t < info->t) {
                 info->t = local.t;
                 info->data = (void *) (local.obj);
                 info->obj = this;
-
-                //r is in world
-                info->hit = (r.origin + r.direction * local.t);
-
+                info->hit = hit;
             }
         }
     }

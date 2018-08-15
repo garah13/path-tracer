@@ -9,7 +9,7 @@
     </cameradata>
 
 
-	<!-- <object type="tree" name="backwall">
+	<object type="tree" name="backwall">
 		<transblock>
 			<translate x="0" y="0" z="-1" />
 			<scale x="1.5" y="1.5" z="1" />
@@ -24,9 +24,9 @@
 			<scale x="1.5" y="1" z="1" />
 			<object type="primitive" name="mesh" filename="wall2.obj" />
 		</transblock>
-	</object> -->
+	</object>
 
-	<!-- <object type="tree" name="ceiling">
+	<object type="tree" name="ceiling">
 	<transblock>
 		<translate x="0" y="1.5" z="0" />
 		<rotate x="1" y="0" z="0" angle="90" />
@@ -52,12 +52,12 @@
 		<scale x="1" y="1.5" z="1" />
 		<object type="primitive" name="mesh" filename="wall4.obj" />
 	</transblock>
-	</object> -->
+	</object>
 
 	<object type="tree" name="cube">
 		<transblock>
-		<translate x="0" y="-1.24" z="0" />
-		<scale x="0.25" y="0.25" z="0.25" />
+		<translate x="1" y="-.49" z="0" />
+		<scale x=".25" y="1" z="0.25" />
 		<object type="primitive" name="mesh" filename="cube.obj" />
 	</transblock>
 
@@ -66,11 +66,11 @@
 	<object type="tree" name="root" >
 		<transblock>
 		<translate x="0" y="1" z="0" />
-            <!-- <object type="master" name="backwall" /> -->
-            <!-- <object type="master" name="floor" /> -->
-<!--             <object type="master" name="ceiling" />
+            <object type="master" name="backwall" />
+            <object type="master" name="floor" />
+            <object type="master" name="ceiling" />
             <object type="master" name="rightwall" />
-            <object type="master" name="leftwall" /> -->
+            <object type="master" name="leftwall" />
             <object type="master" name="cube" />
         </transblock>
 	</object>

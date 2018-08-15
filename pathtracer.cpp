@@ -39,7 +39,7 @@ Vector3f PathTracer::tracePixel(const Scene &scene, int x, int y) {
     Eigen::Matrix4f invViewMatrix = (scene.getCamera()->getScaleMatrix() * scene.getCamera()->getViewMatrix()).inverse();
     Vector3f color(0, 0, 0);
     Vector3f p(0, 0, 0);
-    int num = 2;
+    int num = 10000;
     for (int i = 0; i < num; i++) {
         Vector3f d((2.f * (x + ProbUtil::random(-.5f, .5f)) / m_width) - 1.f, 1.f - (2.f * (y + ProbUtil::random(-.5f, .5f)) / m_height), -1.f);
         d.normalize();
@@ -63,7 +63,8 @@ Vector3f PathTracer::traceRay(const Scene &scene, const Ray &r) {
             return mtlMat.emissiveness;
         }
 
-        return mtlMat.diffuse;
+//        return mtlMat.diffuse;
+
         Vector3f normal = static_cast<const Mesh *>(info.obj)->getNormal(info);
         Material *mat = Material::material(mtlMat);
         if (ProbUtil::random(0, 1) < .3f) {
@@ -75,7 +76,7 @@ Vector3f PathTracer::traceRay(const Scene &scene, const Ray &r) {
             float dot = sample.direction.dot(normal);
             Vector3f radiance = traceRay(scene, outgoing);
             delete mat;
-            return radiance.cwiseProduct(bsdf) * std::fmax(0, dot) / (sample.prob * .3f);
+            return radiance.cwiseProduct(bsdf) * dot / (sample.prob * .3f);
         }
     }
     return Vector3f(0, 0, 0);

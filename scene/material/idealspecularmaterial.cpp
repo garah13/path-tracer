@@ -17,7 +17,7 @@ SampleInfo IdealSpecularMaterial::sampleRay(const Ray &incomingRay, const Vector
 Vector3f IdealSpecularMaterial::bsdf(const Ray &incomingRay, const Ray &outgoingRay, const Vector3f &normal, const MtlMaterial &mat) {
     Vector3f reflect = reflectVector(incomingRay.direction, normal);
     if (floatEpsEqual((reflect - outgoingRay.direction).norm(), 0.f)) {
-        return outgoingRay.direction.dot(normal) * Vector3f(1, 1, 1);
+        return  Vector3f(1, 1, 1) / outgoingRay.direction.dot(normal);
     }
     return Vector3f(0, 0, 0);
 }
